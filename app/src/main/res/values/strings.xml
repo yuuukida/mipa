@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">咪啪助手</string>
+    <string name="accessibility_description">咪啪无障碍助手</string>
+    <string name="accessibility_text">无障碍</string>
+    <string name="float_text">悬浮窗</string>
+    <string name="float_capture">截图权限</string>
+    <string name="installed_text">已安装</string>
+    <string name="start">开始脚本</string>
+    <string name="stop">停止脚本</string>
+
+</resources>

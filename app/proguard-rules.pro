@@ -20,4 +20,4 @@
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
 
--keep class moe.mipa.screen.*
+-keep class moe.mipa.agent.*

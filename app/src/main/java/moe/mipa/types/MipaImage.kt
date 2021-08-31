@@ -1,11 +1,8 @@
 package moe.mipa.types
 
-import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Color
-import android.provider.MediaStore
 import android.util.Log
-import moe.mipa.annotation.ContextFunction
 import java.io.File
 import java.io.FileOutputStream
 import java.lang.Exception

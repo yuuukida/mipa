@@ -4,10 +4,6 @@ import android.content.Context
 import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.media.Image
-import com.eclipsesource.v8.V8Object
-import io.alicorn.v8.V8JavaAdapter.getCacheForRuntime
-import io.alicorn.v8.V8JavaObjectUtils
-import moe.mipa.annotation.ContextFunction
 import moe.mipa.annotation.GlobalFunction
 import moe.mipa.types.MipaImage
 import moe.mipa.utils.Mipa

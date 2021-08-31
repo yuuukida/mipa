@@ -27,14 +27,14 @@ class MipaConsoleTest {
     }
 
     @Test
-    fun log() {
-        commonTest("console.log")
-        commonTest("log")
-    }
-    @Test
     fun debug() {
         commonTest("console.debug")
         commonTest("debug")
+    }
+    @Test
+    fun log() {
+        commonTest("console.log")
+        commonTest("log")
     }
     @Test
     fun info() {

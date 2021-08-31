@@ -6,19 +6,71 @@ import android.content.pm.PackageManager
 import android.util.Log
 import com.eclipsesource.v8.V8Function
 import moe.mipa.annotation.GlobalFunction
+import moe.mipa.annotation.OverloadFunction
 import moe.mipa.service.MipaService
 
 class MipaAction(private val ctx: Context) {
+
+
     @GlobalFunction
-    fun tap(x: Int, y: Int) {
+    @OverloadFunction
+    fun tap(x: Int, y: Int, millis: Int? = 1000) = Unit
+
+    @GlobalFunction
+    fun tapOverload(x: Int, y: Int, millis: Int? = 1000): String {
+        val defaultMillis = millis ?: 1000
         val intent = Intent(ctx, MipaService::class.java)
         intent.action = MipaService.ACTION_CLICK
         intent.putExtra("x", x)
         intent.putExtra("y", y)
         ctx.startService(intent)
-        Thread.sleep(1000)
+        if (defaultMillis > 0) {
+            Thread.sleep(defaultMillis.toLong())
+        }
+        return "tap($x,$y,$defaultMillis)"
     }
 
+
+    @GlobalFunction
+    @OverloadFunction
+    fun tapUntil(condition: Any?, x: Int, y: Int, millis: Int?) = Unit
+
+    @GlobalFunction
+    fun tapUntilOverload(condition: Any?, x: Int, y: Int, millis: Int?): String {
+        val defaultMillis = millis ?: 1000
+        var count = 0
+        var res = ""
+        if (condition is V8Function) {
+            while (!(condition.call(null, null) as Boolean)) {
+                count++
+                res = tapOverload(x, y, defaultMillis)
+            }
+        } else if (condition is String) {
+            Log.d(condition, condition)
+        }
+        return  res + "x$count"
+    }
+
+    @GlobalFunction
+    @OverloadFunction
+    fun tapAfter(condition: Any?, x: Int, y: Int, millis: Int?) = Unit
+
+    @GlobalFunction
+    fun tapAfterOverload(condition: Any?, x: Int, y: Int, millis: Int?): String {
+        val defaultMillis = millis ?: 1000
+        var count = 0
+        if (condition is V8Function) {
+            while (!(condition.call(null, null) as Boolean)) {
+                count++
+                Thread.sleep(defaultMillis.toLong())
+            }
+        } else if (condition is String) {
+            Log.d(condition, condition)
+        }
+        return tapOverload(x, y, 0) + "...$count"
+    }
+
+    @Deprecated("replace with tap")
     @GlobalFunction
     fun click(x: Int, y: Int) {
         val intent = Intent(ctx, MipaService::class.java)
@@ -48,7 +100,7 @@ class MipaAction(private val ctx: Context) {
     }
 
     @GlobalFunction
-    fun text(str:String) {
+    fun text(str: String) {
         val intent = Intent(ctx, MipaService::class.java)
         intent.action = MipaService.ACTION_INPUT_TEXT
         intent.putExtra("str", str)

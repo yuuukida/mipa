@@ -74,7 +74,7 @@ class MipaAgent(
                             jsParams += if (count > i) {
                                 "arg${i},"
                             } else {
-                                "'',"
+                                "null,"
                             }
                         }
                         return jsParams

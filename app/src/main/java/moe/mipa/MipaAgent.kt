@@ -1,7 +1,6 @@
 package moe.mipa
 
 import android.content.Context
-import android.util.Log
 import com.eclipsesource.v8.V8
 import com.eclipsesource.v8.utils.MemoryManager
 import io.alicorn.v8.V8JavaAdapter
@@ -29,6 +28,17 @@ class MipaAgent(
     }
 
 
+    fun runScript(str: String): Any? {
+        val runtime = V8.createV8Runtime()
+        val mm = MemoryManager(runtime)
+        injectAsClassFunction(clzList, runtime)
+        runtime.executeScript(initScripts)
+        val res = runtime.executeScript(str)
+        mm.release()
+        runtime.close()
+        return res
+    }
+
     suspend fun runScript() {
         withContext(defaultDispatcher) {
             val runtime = V8.createV8Runtime()
@@ -50,8 +60,10 @@ class MipaAgent(
     private fun scanAndInjectGlobalFunction(obj: Any, clz: Class<*>, runtime: V8) {
         clz.declaredMethods.forEach { m ->
             run {
+                var isGlobal = false
                 if (m.isAnnotationPresent(GlobalFunction::class.java)) {
                     runtime.registerJavaMethod(obj, m.name, m.name, m.parameterTypes)
+                    isGlobal = true
                 }
                 if (m.isAnnotationPresent(OverloadFunction::class.java)) {
                     val clzName = clz.simpleName.lowercase().substring(4)
@@ -67,12 +79,21 @@ class MipaAgent(
                         }
                         return jsParams
                     }
-                    for (i in 0 until m.parameterTypes.count()) {
-                        nullConfig += "if (!arg${i} )  return ${clzName}.${m.name}Overload(${getNullJsParams(i)})\n"
+
+                    var overloadMethodName = "${clzName}.${m.name}Overload"
+                    var methodName = "${clzName}.${m.name}"
+                    if (isGlobal) {
+                        methodName = "${m.name} = ${clzName}.${m.name}"
+                        overloadMethodName = "${m.name}Overload"
                     }
-                    nullConfig += "return ${clzName}.${m.name}Overload(${getNullJsParams(m.parameterTypes.count())})"
-                     initScripts += """
-                        ${clzName}.${m.name} = function(${getNullJsParams(m.parameterTypes.count())}) {
+                    for (i in 0 until m.parameterTypes.count()) {
+                        nullConfig += "if (!arg${i} )  return $overloadMethodName(${
+                            getNullJsParams(i)
+                        })\n"
+                    }
+                    nullConfig += "return $overloadMethodName(${getNullJsParams(m.parameterTypes.count())})"
+                    initScripts += """
+                       $methodName = function(${getNullJsParams(m.parameterTypes.count())}) {
                             $nullConfig
                         }
                     """

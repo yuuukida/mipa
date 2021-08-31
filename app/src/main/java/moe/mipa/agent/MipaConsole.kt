@@ -8,21 +8,53 @@ import moe.mipa.annotation.OverloadFunction
 class MipaConsole {
 
     @OverloadFunction
-    fun debug(msg:Any,msg2:Any,msg3:Any) {}
-    fun debugOverload(msg:Any,msg2:Any,msg3:Any) {
-        Log.d("mipa.console", msg.toString()+msg2.toString()+msg3.toString())
-    }
-    fun info(msg:Any) {
-        Log.i("mipa.console", msg.toString())
-    }
-    fun warn(msg:Any) {
-        Log.w("mipa.console", msg.toString())
-    }
-    fun error(msg:Any) {
-        Log.e("mipa.console", msg.toString())
-    }
     @GlobalFunction
-    fun log(msg:Any) {
-        Log.v("mipa.console", msg.toString())
+    fun debug(msg1: Any, msg2: Any, msg3: Any) = Unit
+    @GlobalFunction
+    fun debugOverload(msg1: Any, msg2: Any, msg3: Any): String {
+        val msg = msg1.toString() + msg2.toString() + msg3.toString()
+        Log.d("mipa.console", msg)
+        return msg
     }
+
+    @OverloadFunction
+    @GlobalFunction
+    fun info(msg1: Any, msg2: Any, msg3: Any) = Unit
+    @GlobalFunction
+    fun infoOverload(msg1: Any, msg2: Any, msg3: Any): String {
+        val msg = msg1.toString() + msg2.toString() + msg3.toString()
+        Log.i("mipa.console", msg)
+        return msg
+    }
+
+    @OverloadFunction
+    @GlobalFunction
+    fun error(msg1: Any, msg2: Any, msg3: Any) = Unit
+    @GlobalFunction
+    fun errorOverload(msg1: Any, msg2: Any, msg3: Any): String {
+        val msg = msg1.toString() + msg2.toString() + msg3.toString()
+        Log.e("mipa.console", msg)
+        return msg
+    }
+
+    @OverloadFunction
+    @GlobalFunction
+    fun warn(msg: Any, msg2: Any, msg3: Any) = Unit
+    @GlobalFunction
+    fun warnOverload(msg1: Any, msg2: Any, msg3: Any): String {
+        val msg = msg1.toString() + msg2.toString() + msg3.toString()
+        Log.w("mipa.console", msg)
+        return msg
+    }
+
+    @OverloadFunction
+    @GlobalFunction
+    fun log(msg: Any, msg2: Any, msg3: Any) = Unit
+    @GlobalFunction
+    fun logOverload(msg1: Any, msg2: Any, msg3: Any): String {
+        val msg = msg1.toString() + msg2.toString() + msg3.toString()
+        Log.w("mipa.console", msg)
+        return msg
+    }
+
 }

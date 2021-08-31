@@ -10,7 +10,7 @@
   </component>
   <component name="EntryPointsManager">
     <list size="1">
-      <item index="0" class="java.lang.String" itemvalue="moe.mipa.annotation.ContextFunction" />
+      <item index="0" class="java.lang.String" itemvalue="moe.mipa.annotation.GlobalFunction" />
     </list>
   </component>
   <component name="ProjectRootManager" version="2" languageLevel="JDK_11" default="true" project-jdk-name="Android Studio default JDK" project-jdk-type="JavaSDK">

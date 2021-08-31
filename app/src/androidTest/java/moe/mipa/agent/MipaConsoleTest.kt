@@ -6,7 +6,7 @@ import org.junit.Before
 import org.junit.Test
 
 class MipaConsoleTest {
-    lateinit var agent: MipaAgent
+    private lateinit var agent: MipaAgent
     @Before
     fun before() {
         agent = MipaAgent(
@@ -19,7 +19,7 @@ class MipaConsoleTest {
             )
         )
     }
-    private fun commomTest(foo:String) {
+    private fun commonTest(foo:String) {
         // multiple argument test
         assert(agent.runScript("$foo('p1')")=="p1")
         assert(agent.runScript("$foo('p1','p2')")=="p1p2")
@@ -28,27 +28,27 @@ class MipaConsoleTest {
 
     @Test
     fun log() {
-        commomTest("console.log")
-        commomTest("log")
+        commonTest("console.log")
+        commonTest("log")
     }
     @Test
     fun debug() {
-        commomTest("console.debug")
-        commomTest("debug")
+        commonTest("console.debug")
+        commonTest("debug")
     }
     @Test
     fun info() {
-        commomTest("console.info")
-        commomTest("info")
+        commonTest("console.info")
+        commonTest("info")
     }
     @Test
     fun warn() {
-        commomTest("console.warn")
-        commomTest("warn")
+        commonTest("console.warn")
+        commonTest("warn")
     }
     @Test
     fun error() {
-        commomTest("console.error")
-        commomTest("error")
+        commonTest("console.error")
+        commonTest("error")
     }
 }

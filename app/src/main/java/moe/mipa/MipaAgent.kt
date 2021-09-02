@@ -3,7 +3,6 @@ package moe.mipa
 import android.content.Context
 import com.eclipsesource.v8.V8
 import com.eclipsesource.v8.utils.MemoryManager
-import io.alicorn.v8.V8JavaAdapter
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -11,28 +10,40 @@ import moe.mipa.annotation.GlobalFunction
 import moe.mipa.annotation.OverloadFunction
 import java.io.BufferedReader
 import java.io.InputStreamReader
+import java.lang.reflect.Method
 
 
 class MipaAgent(
     private val ctx: Context,
     private val clzList: List<Class<*>>,
-    private val defaultDispatcher: CoroutineDispatcher = Dispatchers.Default
+    private val defaultDispatcher: CoroutineDispatcher = Dispatchers.Default,
 
-) {
-    private var initScripts = ""
-    private fun getScriptString(): String {
-        val buff = BufferedReader(InputStreamReader(ctx.assets.open("index.js")))
+    ) {
+    private var newClzList = ArrayList<Class<*>>()
+    var initScripts = ""
+    var lazyInitScripts = ""
+    private fun getScriptString(name: String = "index.js"): String {
+        val buff = BufferedReader(InputStreamReader(ctx.assets.open(name)))
         var str = ""
         buff.readLines().forEach { str += "$it\n" }
         return str
     }
 
+    fun addClz(clazz: Class<*>) {
+        newClzList.add(clazz)
+    }
+
+    fun clearClz() {
+        newClzList.clear()
+    }
 
     fun runScript(str: String): Any? {
         val runtime = V8.createV8Runtime()
         val mm = MemoryManager(runtime)
         injectAsClassFunction(clzList, runtime)
+        injectAsClassFunction(newClzList, runtime)
         runtime.executeScript(initScripts)
+        runtime.executeScript(lazyInitScripts)
         val res = runtime.executeScript(str)
         mm.release()
         runtime.close()
@@ -45,6 +56,7 @@ class MipaAgent(
             val mm = MemoryManager(runtime)
             injectAsClassFunction(clzList, runtime)
             runtime.executeScript(initScripts)
+            runtime.executeScript(getScriptString("utils.js"))
             runtime.executeScript(getScriptString())
             mm.release()
             runtime.close()
@@ -103,6 +115,27 @@ class MipaAgent(
 
     }
 
+
+    private fun generateOverloadScript(func: Method): String {
+        return """
+            const _mipa_overload_fun_${func.name} = ${func.name}.bind(null)
+            ${func.name} = function() {
+                const args = []
+                for(let i=0; i<${func.parameterTypes.count()}; i++) {
+                    if(i<arguments.length) {
+                        args.push(arguments [i])
+                    } else {
+                        args.push(null)
+                    }
+                }
+                if("${func.name}" !== "log") {
+                    log("arguments", JSON.stringify(args))
+                }
+                return _mipa_overload_fun_${func.name}.apply(null,args)
+            }
+        """.trimIndent() + "\n"
+    }
+
     /**
      * Inject java class to runtime as class function;
      * Call function like:
@@ -116,22 +149,19 @@ class MipaAgent(
          *      inject clz() to runtime
          */
         for (clz in clzList) {
-            try {
-                val obj = clz.getConstructor(Context::class.java).newInstance(ctx)
-                V8JavaAdapter.injectObject(
-                    clz.simpleName.lowercase().substring(4),
-                    clz.getConstructor(Context::class.java).newInstance(ctx),
-                    runtime
-                )
-                scanAndInjectGlobalFunction(obj, clz, runtime)
+            val obj: Any = try {
+                clz.getConstructor(Context::class.java).newInstance(ctx)
             } catch (e: NoSuchMethodException) {
-                val obj = clz.newInstance()
-                V8JavaAdapter.injectObject(
-                    clz.simpleName.lowercase().substring(4),
-                    obj,
-                    runtime
-                )
-                scanAndInjectGlobalFunction(obj, clz, runtime)
+                clz.newInstance()
+            }
+            for (method in clz.declaredMethods) {
+                // kotlin may generate method name like xxx$default if set define default value in arguments
+                // which not suppose to register in runtime
+                if (!method.name.contains('$')) {
+                    runtime.registerJavaMethod(obj, method.name, method.name, method.parameterTypes)
+                    // TODO add overload function only
+                    initScripts += generateOverloadScript(method)
+                }
             }
         }
     }
